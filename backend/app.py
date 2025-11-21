@@ -4,7 +4,8 @@ from flask_migrate import Migrate
 from models import db, MoodEntry, Task
 from config import Config
 from utils.prioritization import classify_tasks, get_task_templates, CATEGORY_LABELS
-
+from flask import send_from_directory
+import os
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -22,9 +23,14 @@ with app.app_context():
     except Exception as e:
         print(f"❌ Database connection failed: {e}")
 
-@app.route('/')
-def hello():
-    return jsonify({"message": "Focus Flow API is running!", "version": "1.0"})
+#@app.route('/')
+#def hello():
+#    return jsonify({"message": "Focus Flow API is running!", "version": "1.0"})
+
+
+#@app.route('/')
+#def serve_frontend():
+    #return send_from_directory('frontend-dist', 'index.html')
 
 @app.route('/api/health')
 def health_check():
@@ -101,6 +107,23 @@ def get_mood_history():
     }
     
     return jsonify(history)
+
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    frontend_path = 'frontend-dist'
+    
+    # Gestion spéciale pour les fichiers JS
+    if path.endswith('.js'):
+        return send_from_directory(frontend_path, path, mimetype='application/javascript')
+    elif path.endswith('.css'):
+        return send_from_directory(frontend_path, path, mimetype='text/css')
+    elif path != "" and os.path.exists(os.path.join(frontend_path, path)):
+        return send_from_directory(frontend_path, path)
+    else:
+        return send_from_directory(frontend_path, 'index.html')
+
 
 
 if __name__ == '__main__':
