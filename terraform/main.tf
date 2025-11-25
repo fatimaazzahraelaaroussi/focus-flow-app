@@ -28,6 +28,7 @@ resource "aws_s3_bucket_website_configuration" "frontend" {
   }
 }
 
+# DÉSACTIVE le blocage des politiques publiques
 resource "aws_s3_bucket_public_access_block" "frontend" {
   bucket = aws_s3_bucket.frontend.id
 
@@ -37,9 +38,9 @@ resource "aws_s3_bucket_public_access_block" "frontend" {
   restrict_public_buckets = false
 }
 
+# Utilise une configuration de site web au lieu d'une policy bucket
 resource "aws_s3_bucket_policy" "frontend" {
   bucket = aws_s3_bucket.frontend.id
-
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -51,6 +52,8 @@ resource "aws_s3_bucket_policy" "frontend" {
       }
     ]
   })
+
+  depends_on = [aws_s3_bucket_public_access_block.frontend]
 }
 
 # Instance EC2 pour le backend + MySQL
