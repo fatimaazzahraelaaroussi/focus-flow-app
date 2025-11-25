@@ -1,0 +1,24 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Installation des dépendances pour MySQL
+RUN apt-get update && apt-get install -y \
+    default-libmysqlclient-dev \
+    build-essential \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt gunicorn
+
+COPY . .
+
+EXPOSE 5000
+
+# Health check pour vérifier que l'app fonctionne
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:5000/api/health || exit 1
+
+# Commande de production avec Gunicorn
+CMD ["sh", "-c", "sleep 20 && gunicorn --bind 0.0.0.0:5000 --timeout 120 wsgi:app"]
