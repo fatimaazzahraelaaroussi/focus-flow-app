@@ -56,9 +56,25 @@ resource "aws_s3_bucket_policy" "frontend" {
   depends_on = [aws_s3_bucket_public_access_block.frontend]
 }
 
+# Trouve l'AMI Ubuntu 22.04 LTS automatiquement
+data "aws_ami" "ubuntu" {
+  most_recent = true
+  owners      = ["099720109477"] # Canonical
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
 # Instance EC2 pour le backend + MySQL
 resource "aws_instance" "backend" {
-  ami           = "ami-0c6c2a31d22e6c4af"  # Ubuntu 22.04 LTS
+  ami           = data.aws_ami.ubuntu.id  # Utilise l'AMI trouvée automatiquement
   instance_type = "t2.micro"
   key_name      = var.ssh_key_name
 
@@ -68,9 +84,6 @@ resource "aws_instance" "backend" {
   tags = {
     Name = "${var.project_name}-backend"
   }
-
-  # Empêche la suppression accidentelle
-  disable_api_termination = false
 }
 
 # Security Group pour l'instance EC2
