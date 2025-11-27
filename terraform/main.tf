@@ -75,7 +75,7 @@ data "aws_ami" "ubuntu" {
 # Instance EC2 pour le backend + MySQL
 resource "aws_instance" "backend" {
   ami           = data.aws_ami.ubuntu.id  # Utilise l'AMI trouvée automatiquement
-  instance_type = "t2.micro"
+  instance_type = "t3.micro"
   key_name      = var.ssh_key_name
 
   vpc_security_group_ids = [aws_security_group.backend.id]
